@@ -1,0 +1,42 @@
+From 20445e77661d58efc65b9571ca96af1fca33e392 Mon Sep 17 00:00:00 2001
+From: ejaaskel <esa.jaaskela@suomi24.fi>
+Date: Wed, 29 Oct 2025 10:51:19 +0000
+Subject: [PATCH] Do not read stop string from bootstopkeycrypt
+
+Do not read the stop string from bootstopkeycrypt environment variable.
+This variable can be used to set the default stop string to use when
+using the crypted stop strings. However, this poses a security risk on
+systems where the boot environment can be modified, as it can be used to
+set the stop string into a known value and bypass the stop string set
+during the compilation.
+
+Upstream-Status: Inappropriate [Sulka specific]
+---
+ common/autoboot.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/common/autoboot.c b/common/autoboot.c
+index 5d331991c19..12fb6381420 100644
+--- a/common/autoboot.c
++++ b/common/autoboot.c
+@@ -77,16 +77,13 @@ static int menukey;
+  */
+ static int passwd_abort_crypt(uint64_t etime)
+ {
+-	const char *crypt_env_str = env_get("bootstopkeycrypt");
++	const char *crypt_env_str = AUTOBOOT_STOP_STR_CRYPT;
+ 	char presskey[DELAY_STOP_STR_MAX_LENGTH];
+ 	u_int presskey_len = 0;
+ 	int abort = 0;
+ 	int never_timeout = 0;
+ 	int err;
+ 
+-	if (IS_ENABLED(CONFIG_AUTOBOOT_STOP_STR_ENABLE) && !crypt_env_str)
+-		crypt_env_str = AUTOBOOT_STOP_STR_CRYPT;
+-
+ 	if (!crypt_env_str)
+ 		return 0;
+ 
+-- 
+2.34.1
+
