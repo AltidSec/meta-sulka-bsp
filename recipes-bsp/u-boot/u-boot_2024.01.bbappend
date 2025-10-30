@@ -5,6 +5,7 @@ SRC_URI:append = " \
     file://0100-Do-not-read-stop-string-from-bootstopkeycrypt.patch \
     file://0101-Add-unlocking-checking-feature.patch \
     file://0102-Unlock-if-crypted-stop-string-entered.patch \
+    file://0103-Do-not-drop-into-CLI-if-not-unlocked.patch \
 "
 
 SULKA_UBOOT_PASSWORD ??= ""
