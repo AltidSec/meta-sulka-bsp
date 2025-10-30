@@ -1,0 +1,91 @@
+From 5600060e2289b571ec33de9bab8c9eda83ae0c52 Mon Sep 17 00:00:00 2001
+From: ejaaskel <esa.jaaskela@suomi24.fi>
+Date: Thu, 30 Oct 2025 12:53:55 +0200
+Subject: [PATCH] Add unlocking checking feature
+
+Add device unlocking feature. This can be used to set the device into an
+unlocked state, for example, after inputting the correct stop string.
+Once in this unlocked state, the device can be allowed to perform
+different tasks that are not possible while locked.
+
+Upstream-Status: Pending
+---
+ common/Kconfig           | 15 +++++++++++++++
+ common/Makefile          |  1 +
+ common/unlocking.c  | 14 ++++++++++++++
+ include/unlocking.h |  8 ++++++++
+ 4 files changed, 38 insertions(+)
+ create mode 100644 common/unlocking.c
+ create mode 100644 include/unlocking.h
+
+diff --git a/common/Kconfig b/common/Kconfig
+index 0f548195197..58f5027ed19 100644
+--- a/common/Kconfig
++++ b/common/Kconfig
+@@ -895,6 +895,17 @@ config BOARD_RNG_SEED
+ 	  new seed for use on subsequent boots, and whether or not the
+ 	  kernel should account any entropy from the given seed.
+ 
++config UNLOCKING
++	bool "Enable device unlocking feature"
++	help
++	  This option adds two functions that allow setting the system
++	  into an unlocked state and checking whether the state is
++	  unlocked.
++
++	  This functionality can be used to filter and limit certain
++	  actions if for example the stop string has not been entered
++	  to the system.
++
+ endmenu
+ 
+ menu "Update support"
+diff --git a/common/Makefile b/common/Makefile
+index cdeadf72026..06759aa3a66 100644
+--- a/common/Makefile
++++ b/common/Makefile
+@@ -10,6 +10,7 @@ obj-y += main.o
+ obj-y += exports.o
+ obj-$(CONFIG_HUSH_PARSER) += cli_hush.o
+ obj-$(CONFIG_AUTOBOOT) += autoboot.o
++obj-$(CONFIG_UNLOCKING) += unlocking.o
+ 
+ # # boards
+ obj-y += board_f.o
+diff --git a/common/unlocking.c b/common/unlocking.c
+new file mode 100644
+index 00000000000..664e1552544
+--- /dev/null
++++ b/common/unlocking.c
+@@ -0,0 +1,14 @@
++#include <unlocking.h>
++
++uint32_t unlock_state = 0;
++
++// Use magic value for simple overwrite protection
++#define UNLOCK_MAGIC 0x41555448
++
++bool device_is_unlocked(void) {
++	return unlock_state == UNLOCK_MAGIC;
++}
++
++void device_set_unlocked(void) {
++	unlock_state = UNLOCK_MAGIC;
++}
+diff --git a/include/unlocking.h b/include/unlocking.h
+new file mode 100644
+index 00000000000..bc28236d006
+--- /dev/null
++++ b/include/unlocking.h
+@@ -0,0 +1,8 @@
++#ifndef UNLOCKING_H
++#define UNLOCKING_H
++#include <common.h>
++
++bool device_is_unlocked(void);
++
++void device_set_unlocked(void);
++#endif
+-- 
+2.34.1
+
