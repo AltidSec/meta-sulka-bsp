@@ -1,0 +1,150 @@
+From 435b8184c920a7836f1159dfce78b468fe030b0d Mon Sep 17 00:00:00 2001
+From: ejaaskel <esa.jaaskela@suomi24.fi>
+Date: Fri, 31 Oct 2025 12:17:50 +0200
+Subject: [PATCH] Implement command allowlisting
+
+Implement the command allowlisting. This feature allows limiting the
+commands that can be run in the system if the system is not in the
+unlocked state. If the device is not unlocked (i.e. autoboot has not
+been aborted), only commands in the allowlist are allowed to be
+executed. If the device is unlocked, all commands built into the device
+are allowed.
+
+While this reduces a risk of malicious commands being run, it does not
+mean that unnecessary commands shouldn't be removed from the bootloader.
+
+Upstream-Status: Pending
+---
+ cmd/Kconfig      | 19 ++++++++++++++++
+ common/command.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+)
+
+diff --git a/cmd/Kconfig b/cmd/Kconfig
+index df6d71c103f..693043c782f 100644
+--- a/cmd/Kconfig
++++ b/cmd/Kconfig
+@@ -103,6 +103,25 @@ config SYS_XTRACE
+ config BUILD_BIN2C
+ 	bool
+ 
++config COMMAND_ALLOWLIST
++	bool "Command allowlisting"
++	depends on UNLOCKING
++	default n
++	help
++	  This option allows enabling allowlist feature to limit the commands
++	  that can be run in the system. If the system is in unlocked state,
++	  there are no restrictions on the commands that can be run.
++
++config COMMAND_ALLOWLIST_CMDS
++	string "Space separated list of the allowed commands"
++	depends on COMMAND_ALLOWLIST
++	default ""
++	help
++	  List of all the commands that are allowed to execute in the locked
++	  state. The commands should be space separated. Note that the maximum
++	  length for command name is 16 characters, if command is longer please
++	  adjust token size in cmd_allowlist function.
++
+ comment "Commands"
+ 
+ menu "Info commands"
+diff --git a/common/command.c b/common/command.c
+index 846e16e2ada..7276ad2e94f 100644
+--- a/common/command.c
++++ b/common/command.c
+@@ -18,9 +18,17 @@
+ #include <mapmem.h>
+ #include <asm/global_data.h>
+ #include <linux/ctype.h>
++#include <unlocking.h>
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
++#if defined(CONFIG_COMMAND_ALLOWLIST_CMDS)
++#define COMMAND_ALLOWLIST	CONFIG_COMMAND_ALLOWLIST_CMDS
++#define COMMAND_ALLOWLIST_LEN	(sizeof(COMMAND_ALLOWLIST) - 1)
++#else
++#define COMMAND_ALLOWLIST	""
++#define COMMAND_ALLOWLIST_LEN	0
++#endif
+ /*
+  * Use puts() instead of printf() to avoid printf buffer overflow
+  * for long help messages
+@@ -562,6 +570,63 @@ int cmd_discard_repeatable(struct cmd_tbl *cmdtp, int flag, int argc,
+ 	return cmdtp->cmd_rep(cmdtp, flag, argc, argv, &repeatable);
+ }
+ 
++/**
++ * Check if the command is in the list of allowed commands
++ * @param name		Name of the command to run
++ * Return: 0 if command is in the allowlist, else -1
++ */
++static int cmd_allowlist(const char *name) {
++	if (!device_is_unlocked()) {
++		const char *p = COMMAND_ALLOWLIST;
++		const size_t max_len = COMMAND_ALLOWLIST_LEN;
++		const char *start;
++		char token[16];
++		int len;
++		size_t offset = 0;
++
++		if (max_len > 0 && p[max_len] != '\0') {
++			printf("SECURITY ERROR: Allowlist not null-terminated\n");
++			return -1;
++		}
++
++		if (max_len != strlen(p)) {
++			printf("SECURITY ERROR: Allowlist current and expected length do not match\n");
++			return -1;
++		}
++
++		while (offset < max_len && p[offset]) {
++			//Skip leading whitespace
++			while (offset < max_len && (p[offset] == ' ' || p[offset] == '\t'))
++				offset++;
++			//Reached the end of the allowlist, break
++			if (offset >= max_len || p[offset] == '\0')
++				break;
++
++			start = &p[offset];
++			//Find the end of the token
++			while (offset < max_len && p[offset] != '\0' && p[offset] != ' ' && p[offset] != '\t')
++				offset++;
++
++			len = &p[offset] - start;
++			// Copy & check command if it fits into token
++			if (len > 0 && len < (int)sizeof(token)) {
++				memcpy(token, start, len);
++				token[len] = '\0';
++
++				if (strcmp(token, name) == 0)
++					return 0;
++			} else {
++				printf("Command either zero or too long: %s\n", name);
++			}
++		}
++
++		printf("Attempted to run %s while in the locked state\n", name);
++		return -1;
++	} else {
++		return 0;
++	}
++}
++
+ /**
+  * Call a command function. This should be the only route in U-Boot to call
+  * a command, so that we can track whether we are waiting for input or
+@@ -579,6 +633,9 @@ static int cmd_call(struct cmd_tbl *cmdtp, int flag, int argc,
+ {
+ 	int result;
+ 
++	if (IS_ENABLED(CONFIG_COMMAND_ALLOWLIST) && cmd_allowlist(cmdtp->name))
++		return CMD_RET_FAILURE;
++
+ 	result = cmdtp->cmd_rep(cmdtp, flag, argc, argv, repeatable);
+ 	if (result)
+ 		debug("Command failed, result=%d\n", result);
+-- 
+2.34.1
+

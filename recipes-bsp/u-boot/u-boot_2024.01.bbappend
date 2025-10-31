@@ -6,6 +6,7 @@ SRC_URI:append = " \
     file://0101-Add-unlocking-checking-feature.patch \
     file://0102-Unlock-if-crypted-stop-string-entered.patch \
     file://0103-Do-not-drop-into-CLI-if-not-unlocked.patch \
+    file://0104-Implement-command-allowlisting.patch \
 "
 
 SULKA_UBOOT_PASSWORD ??= ""
