@@ -1,4 +1,4 @@
-From 435b8184c920a7836f1159dfce78b468fe030b0d Mon Sep 17 00:00:00 2001
+From 329a551440f84a25a0a662efa48d0242413dd2b9 Mon Sep 17 00:00:00 2001
 From: ejaaskel <esa.jaaskela@suomi24.fi>
 Date: Fri, 31 Oct 2025 12:17:50 +0200
 Subject: [PATCH] Implement command allowlisting
@@ -15,15 +15,15 @@ mean that unnecessary commands shouldn't be removed from the bootloader.
 
 Upstream-Status: Pending
 ---
- cmd/Kconfig      | 19 ++++++++++++++++
- common/command.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 77 insertions(+)
+ cmd/Kconfig      | 19 ++++++++++++++
+ common/command.c | 68 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
 
 diff --git a/cmd/Kconfig b/cmd/Kconfig
-index df6d71c103f..693043c782f 100644
+index 5c611fb3016..f757cfd8d9f 100644
 --- a/cmd/Kconfig
 +++ b/cmd/Kconfig
-@@ -103,6 +103,25 @@ config SYS_XTRACE
+@@ -109,6 +109,25 @@ config SYS_XTRACE
  config BUILD_BIN2C
  	bool
  
@@ -50,11 +50,11 @@ index df6d71c103f..693043c782f 100644
  
  menu "Info commands"
 diff --git a/common/command.c b/common/command.c
-index 846e16e2ada..7276ad2e94f 100644
+index 0f9dd06d72b..68ccb5e8fdc 100644
 --- a/common/command.c
 +++ b/common/command.c
-@@ -18,9 +18,17 @@
- #include <mapmem.h>
+@@ -19,9 +19,17 @@
+ #include <time.h>
  #include <asm/global_data.h>
  #include <linux/ctype.h>
 +#include <unlocking.h>
@@ -135,7 +135,7 @@ index 846e16e2ada..7276ad2e94f 100644
  /**
   * Call a command function. This should be the only route in U-Boot to call
   * a command, so that we can track whether we are waiting for input or
-@@ -579,6 +633,9 @@ static int cmd_call(struct cmd_tbl *cmdtp, int flag, int argc,
+@@ -579,6 +644,9 @@ static int cmd_call(struct cmd_tbl *cmdtp, int flag, int argc,
  {
  	int result;
  
@@ -145,6 +145,3 @@ index 846e16e2ada..7276ad2e94f 100644
  	result = cmdtp->cmd_rep(cmdtp, flag, argc, argv, repeatable);
  	if (result)
  		debug("Command failed, result=%d\n", result);
--- 
-2.34.1
-

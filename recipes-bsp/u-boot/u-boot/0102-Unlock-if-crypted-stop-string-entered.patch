@@ -1,7 +1,7 @@
-From df60cc3dc40b0731c298e1d61c2c6af6dfbd993a Mon Sep 17 00:00:00 2001
+From 8c68447f8c605e8265b2efebb1f3056641d5c6b1 Mon Sep 17 00:00:00 2001
 From: ejaaskel <esa.jaaskela@suomi24.fi>
 Date: Thu, 30 Oct 2025 13:01:27 +0200
-Subject: Unlock if crypted stop string entered
+Subject: [PATCH] Unlock if crypted stop string entered
 
 Consider the device to be in the unlocked state if the crypted stop
 string has been correctly entered into the system and the autoboot has
@@ -9,22 +9,22 @@ been aborted as a result.
 
 Upstream-Status: Pending
 ---
- common/autoboot.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ common/autoboot.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/common/autoboot.c b/common/autoboot.c
-index 5d331991c19..bcd05c84d56 100644
+index 9ff1a7848d7..02adb96ad5b 100644
 --- a/common/autoboot.c
 +++ b/common/autoboot.c
 @@ -5,6 +5,7 @@
   */
  
- #include <common.h>
+ #include <config.h>
 +#include <unlocking.h>
  #include <autoboot.h>
  #include <bootretry.h>
  #include <cli.h>
-@@ -122,6 +123,10 @@ static int passwd_abort_crypt(uint64_t etime)
+@@ -120,6 +121,10 @@ static int passwd_abort_crypt(uint64_t etime)
  		udelay(10000);
  	} while (never_timeout || get_ticks() <= etime);
  
@@ -35,6 +35,3 @@ index 5d331991c19..bcd05c84d56 100644
  	return abort;
  }
  
--- 
-2.34.1
-

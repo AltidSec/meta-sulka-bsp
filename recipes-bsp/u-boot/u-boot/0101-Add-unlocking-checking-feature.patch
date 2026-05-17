@@ -1,4 +1,4 @@
-From 5600060e2289b571ec33de9bab8c9eda83ae0c52 Mon Sep 17 00:00:00 2001
+From 23d8ce4adcadcc5e7474bdd49e32c2a3552006c2 Mon Sep 17 00:00:00 2001
 From: ejaaskel <esa.jaaskela@suomi24.fi>
 Date: Thu, 30 Oct 2025 12:53:55 +0200
 Subject: [PATCH] Add unlocking checking feature
@@ -10,21 +10,21 @@ different tasks that are not possible while locked.
 
 Upstream-Status: Pending
 ---
- common/Kconfig           | 15 +++++++++++++++
- common/Makefile          |  1 +
+ common/Kconfig      | 11 +++++++++++
+ common/Makefile     |  1 +
  common/unlocking.c  | 14 ++++++++++++++
  include/unlocking.h |  8 ++++++++
- 4 files changed, 38 insertions(+)
+ 4 files changed, 34 insertions(+)
  create mode 100644 common/unlocking.c
  create mode 100644 include/unlocking.h
 
 diff --git a/common/Kconfig b/common/Kconfig
-index 0f548195197..58f5027ed19 100644
+index 47d17f4e7c6..5f79c0ba916 100644
 --- a/common/Kconfig
 +++ b/common/Kconfig
-@@ -895,6 +895,17 @@ config BOARD_RNG_SEED
- 	  new seed for use on subsequent boots, and whether or not the
- 	  kernel should account any entropy from the given seed.
+@@ -976,6 +976,17 @@ config BOARD_RNG_SEED
+ 	  Default seed size (64 bytes) can be overridden by a decimal
+ 	  environment variable rng_seed_size.
  
 +config UNLOCKING
 +	bool "Enable device unlocking feature"
@@ -41,26 +41,26 @@ index 0f548195197..58f5027ed19 100644
  
  menu "Update support"
 diff --git a/common/Makefile b/common/Makefile
-index cdeadf72026..06759aa3a66 100644
+index d62ea34599e..a63e1b72592 100644
 --- a/common/Makefile
 +++ b/common/Makefile
-@@ -10,6 +10,7 @@ obj-y += main.o
- obj-y += exports.o
- obj-$(CONFIG_HUSH_PARSER) += cli_hush.o
+@@ -15,6 +15,7 @@ obj-$(CONFIG_HUSH_MODERN_PARSER) += cli_hush_modern.o
  obj-$(CONFIG_AUTOBOOT) += autoboot.o
+ obj-$(CONFIG_BUTTON_CMD) += button_cmd.o
+ obj-y += version.o
 +obj-$(CONFIG_UNLOCKING) += unlocking.o
  
  # # boards
  obj-y += board_f.o
 diff --git a/common/unlocking.c b/common/unlocking.c
 new file mode 100644
-index 00000000000..664e1552544
+index 00000000000..42829d6103f
 --- /dev/null
 +++ b/common/unlocking.c
 @@ -0,0 +1,14 @@
 +#include <unlocking.h>
 +
-+uint32_t unlock_state = 0;
++u32 unlock_state = 0;
 +
 +// Use magic value for simple overwrite protection
 +#define UNLOCK_MAGIC 0x41555448
@@ -74,18 +74,15 @@ index 00000000000..664e1552544
 +}
 diff --git a/include/unlocking.h b/include/unlocking.h
 new file mode 100644
-index 00000000000..bc28236d006
+index 00000000000..ac3181b4bf6
 --- /dev/null
 +++ b/include/unlocking.h
 @@ -0,0 +1,8 @@
 +#ifndef UNLOCKING_H
 +#define UNLOCKING_H
-+#include <common.h>
++#include <linux/types.h>
 +
 +bool device_is_unlocked(void);
 +
 +void device_set_unlocked(void);
 +#endif
--- 
-2.34.1
-

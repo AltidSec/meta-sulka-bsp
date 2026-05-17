@@ -1,4 +1,4 @@
-From 26ecdfe466b5556ba6e90b92ec1b72b26eb5a539 Mon Sep 17 00:00:00 2001
+From 856d3ca3b5fbfd015d1157e487ca90940c06f846 Mon Sep 17 00:00:00 2001
 From: ejaaskel <esa.jaaskela@suomi24.fi>
 Date: Thu, 30 Oct 2025 13:08:30 +0200
 Subject: [PATCH] Do not drop into CLI if not unlocked
@@ -9,16 +9,24 @@ state.
 
 Upstream-Status: Pending
 ---
- common/main.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ common/main.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/common/main.c b/common/main.c
-index 7c70de2e59a..ef1733af888 100644
+index b0b6e74f5d3..588ebc722db 100644
 --- a/common/main.c
 +++ b/common/main.c
-@@ -67,6 +67,12 @@ void main_loop(void)
+@@ -19,6 +19,7 @@
+ #include <net.h>
+ #include <version_string.h>
+ #include <efi_loader.h>
++#include <unlocking.h>
  
- 	autoboot_command(s);
+ static void run_preboot_environment_command(void)
+ {
+@@ -79,7 +80,13 @@ void main_loop(void)
+ 		panic("Failed to boot");
+ 	}
  
 -	cli_loop();
 +	if (IS_ENABLED(CONFIG_UNLOCKING)) {
@@ -28,8 +36,6 @@ index 7c70de2e59a..ef1733af888 100644
 +	} else {
 +		cli_loop();
 +	}
+ 
  	panic("No CLI available");
  }
--- 
-2.34.1
-
