@@ -1,6 +1,6 @@
-FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend:sulka-hardening := "${THISDIR}/${PN}:"
 
-SRC_URI:append = " \
+SRC_URI:append:sulka-hardening = " \
     file://sulka_harden_configuration.cfg \
     file://0100-Do-not-read-stop-string-from-bootstopkeycrypt.patch \
     file://0101-Add-unlocking-checking-feature.patch \
@@ -11,7 +11,7 @@ SRC_URI:append = " \
 
 SULKA_UBOOT_PASSWORD ??= ""
 
-do_configure:append () {
+do_configure:append:sulka-hardening () {
     if [ -z "${SULKA_UBOOT_PASSWORD}" ]; then
         bbwarn "U-Boot console password is not set. Interactive login to U-Boot will be disabled."
     fi
