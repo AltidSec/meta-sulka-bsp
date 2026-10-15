@@ -20,6 +20,11 @@ The console password is set at build time.
 If it is left unset, the build emits a warning and interactive login to U-Boot is disabled entirely, which is the safe default but will lock you out of the console.
 See the [bootloader section of the user guide](https://altidsec.com/sulka/documentation/user-guide.html#bootloader-u-boot) for the details, and the [configuration variables](https://altidsec.com/sulka/documentation/user-guide.html#configuration-variables) section for how to set it.
 
+The layer also provides the U-Boot side of verified boot, which is enabled with `SULKA_ENABLE_VERIFIED_BOOT`.
+`sulka_verified_boot.cfg` makes U-Boot boot only FIT images whose configuration is signed with the key in its control device tree, and disables the ways of booting anything else.
+The boot command and the `qemu-virt-dtb` recipe are also added for the `qemuarm64` reference. `qemu-virt-dtb` dumps the device tree of the QEMU virtual machine at build time so that the key can be built into U-Boot. Using `qemu-virt-dtb` is not mandatory for actual hardware.
+See [verified boot](https://altidsec.com/sulka/documentation/user-guide.html#verified-boot) in the user guide.
+
 ## Layer Information
 
 | | |

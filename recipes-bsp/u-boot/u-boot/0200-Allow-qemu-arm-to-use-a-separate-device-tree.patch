@@ -1,0 +1,37 @@
+From 559a09636a5dc2a68177492209c0b2bee499738b Mon Sep 17 00:00:00 2001
+From: ejaaskel <esa.jaaskela@suomi24.fi>
+Date: Tue, 6 Oct 2026 19:18:09 +0300
+Subject: [PATCH] Allow qemu-arm to use a separate device tree
+
+The QEMU arm boards use the device tree QEMU generates at run time
+(OF_HAS_PRIOR_STAGE), and the build refuses configurations without
+OF_BOARD. Sulka's verified boot reference for qemuarm64 builds the
+device tree of the virt machine into U-Boot with OF_SEPARATE instead,
+so that the control device tree that carries the FIT signature
+verification key is part of U-Boot and not passed by QEMU.
+
+OF_HAS_PRIOR_STAGE has no prompt and ARCH_QEMU implies it, so it cannot
+be disabled in a configuration fragment, and the build check fails
+without OF_BOARD. At run time it is used by standard boot and the EFI
+loader, which Sulka's verified boot configuration disables, and to print
+a warning when the device tree is not from a prior stage:
+
+  Warning: Unexpected devicetree source (not from a prior stage)
+  Warning: U-Boot may not function properly
+
+The warning is expected with the built-in device tree. Allow the board
+in the check.
+
+Upstream-Status: Inappropriate [Sulka qemuarm64 verified boot reference]
+Signed-off-by: ejaaskel <esa.jaaskela@suomi24.fi>
+---
+ scripts/of_allowlist.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/of_allowlist.txt b/scripts/of_allowlist.txt
+index e82cf55..4e1c15a 100644
+--- a/scripts/of_allowlist.txt
++++ b/scripts/of_allowlist.txt
+@@ -1 +1,2 @@
+ # List of boards which are permitted to use OF_HAS_PRIOR_STAGE without OF_BOARD
++qemu-arm
