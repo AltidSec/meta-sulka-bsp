@@ -19,7 +19,7 @@ diff --git a/common/autoboot.c b/common/autoboot.c
 index 5d331991c19..12fb6381420 100644
 --- a/common/autoboot.c
 +++ b/common/autoboot.c
-@@ -77,16 +77,13 @@ static int menukey;
+@@ -78,16 +78,13 @@ static int menukey;
   */
  static int passwd_abort_crypt(uint64_t etime)
  {
