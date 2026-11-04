@@ -121,7 +121,7 @@ index 846e16e2ada..7276ad2e94f 100644
 +				if (strcmp(token, name) == 0)
 +					return 0;
 +			} else {
-+				printf("Command either zero or too long: %s\n", name);
++				printf("Allowlist entry too long, ignored: %.*s\n", len, start);
 +			}
 +		}
 +
