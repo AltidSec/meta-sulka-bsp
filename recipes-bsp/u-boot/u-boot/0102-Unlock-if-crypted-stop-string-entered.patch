@@ -24,7 +24,7 @@ index 5d331991c19..bcd05c84d56 100644
  #include <autoboot.h>
  #include <bootretry.h>
  #include <cli.h>
-@@ -122,6 +123,10 @@ static int passwd_abort_crypt(uint64_t etime)
+@@ -119,6 +120,10 @@ static int passwd_abort_crypt(uint64_t etime)
  		udelay(10000);
  	} while (never_timeout || get_ticks() <= etime);
  
